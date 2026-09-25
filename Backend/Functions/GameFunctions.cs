@@ -20,9 +20,24 @@ namespace Backend.Functions
             _logger = logger;
         }
 
-        [Function("registerplayer")]
-        public async Task<HttpResponseData> RegisterPlayer([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        private static void AddCorsHeaders(HttpResponseData response)
         {
+            response.Headers.Add("Access-Control-Allow-Origin", "*");
+            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+        }
+
+        [Function("registerplayer")]
+        public async Task<HttpResponseData> RegisterPlayer([HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequestData req)
+        {
+            // Handle CORS preflight
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+            {
+                var corsResponse = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(corsResponse);
+                return corsResponse;
+            }
+
             _logger.LogInformation("C# HTTP trigger function registerplayer processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -31,6 +46,7 @@ namespace Backend.Functions
             if (data == null)
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(badResponse);
                 await badResponse.WriteStringAsync("Invalid player data.");
                 return badResponse;
             }
@@ -42,13 +58,22 @@ namespace Backend.Functions
             await _dbContext.SaveChangesAsync();
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(response);
             await response.WriteAsJsonAsync(data);
             return response;
         }
 
         [Function("createasset")]
-        public async Task<HttpResponseData> CreateAsset([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public async Task<HttpResponseData> CreateAsset([HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequestData req)
         {
+            // Handle CORS preflight
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+            {
+                var corsResponse = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(corsResponse);
+                return corsResponse;
+            }
+
             _logger.LogInformation("C# HTTP trigger function createasset processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -57,6 +82,7 @@ namespace Backend.Functions
             if (data == null)
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(badResponse);
                 await badResponse.WriteStringAsync("Invalid asset data.");
                 return badResponse;
             }
@@ -68,13 +94,22 @@ namespace Backend.Functions
             await _dbContext.SaveChangesAsync();
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(response);
             await response.WriteAsJsonAsync(data);
             return response;
         }
 
         [Function("getassetsbyplayer")]
-        public async Task<HttpResponseData> GetAssetsByPlayer([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
+        public async Task<HttpResponseData> GetAssetsByPlayer([HttpTrigger(AuthorizationLevel.Anonymous, "get", "options")] HttpRequestData req)
         {
+            // Handle CORS preflight
+            if (req.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+            {
+                var corsResponse = req.CreateResponse(HttpStatusCode.OK);
+                AddCorsHeaders(corsResponse);
+                return corsResponse;
+            }
+
             _logger.LogInformation("C# HTTP trigger function getassetsbyplayer processed a request.");
 
             var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
@@ -99,6 +134,7 @@ namespace Backend.Functions
             }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(response);
             await response.WriteAsJsonAsync(results);
             return response;
         }
